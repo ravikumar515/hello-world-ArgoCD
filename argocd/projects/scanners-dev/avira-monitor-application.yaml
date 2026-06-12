@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: avira-monitor-dev
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: 776389595347.dkr.ecr.us-west-2.amazonaws.com
+    chart: sib/helmcharts/ares/avira-monitor
+    targetRevision: 0.1.0
+    helm:
+      releaseName: avira-monitor-dev
+      valuesObject:
+        namespace: mars
+        fullnameOverride: avira-monitor
+        image:
+          repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/avira-monitor
+          tag: mars-4162
+          pullPolicy: IfNotPresent
+        imagePullSecrets:
+          - name: ecr-regcred
+        replicaCount: 1
+        externalSecrets:
+          enabled: true
+          secretStoreName: aws-ares
+          secretStoreKind: ClusterSecretStore
+          datadogApiKeySecretKey: dev/scanners/avira-monitor/datadog-api-key
+          datadogApiKeySecretProperty: metrics.datadog.apikey
+        env:
+          PRODUCTION_MONITOR_TEST_TAG: "@PRODUCTION_MONITOR or @PRODUCTION_MONITOR_K8S or @PRODUCTION_MONITOR_DOGFOOD"
+          METRICS_ENABLED: "false"
+          PLATFORM: avalon
+          PROJECT: avalon.local
+          QUADRA_DATACENTER: gcp-scanner-test
+          K8S_VEDC: gcp-scanner-test
+          ENV: gcp-scanner-test
+          ENVIRONMENT: gcp-scanner-test
+          METRICS_PROVIDER: PROMETHEUS
+        resources:
+          requests:
+            cpu: 500m
+            memory: 4Gi
+            ephemeral-storage: 203Mi
+          limits:
+            cpu: "1"
+            memory: 8Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mars
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
