@@ -20,8 +20,6 @@ spec:
           repository: us-central1-docker.pkg.dev/gcp-scannersinabox-nprd-77987/amp-docker/amp-scanner-gen-monitor
           tag: v1
           pullPolicy: IfNotPresent
-        imagePullSecrets:
-          - name: ecr-regcred
         replicas: 1
         externalSecrets:
           enabled: true
