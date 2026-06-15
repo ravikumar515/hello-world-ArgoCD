@@ -112,6 +112,8 @@ annotate_if_present mars ecr-regcred
 annotate_if_present mars bitdefender-secrets
 annotate_if_present mars bd-updater-aws-access-key-id
 annotate_if_present mars bd-updater-aws-secret-access-key
+annotate_if_present mars amp-scanner-gen-secrets
+annotate_if_present mars amp-scanner-gen-monitor-secrets
 annotate_if_present mars avira-secrets
 annotate_if_present mars scanning-service-secrets
 
