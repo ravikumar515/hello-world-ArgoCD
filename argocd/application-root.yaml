@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: avira-monitor-root
+  name: amp-scanner-gen-monitor-root
   namespace: argocd
 spec:
   project: default
