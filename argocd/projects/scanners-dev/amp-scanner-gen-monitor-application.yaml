@@ -18,7 +18,7 @@ spec:
         fullnameOverride: amp-scanner-gen-monitor
         image:
           repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/amp-scanner-gen-monitor
-          tag: local-vm-setup-gcp
+          tag: mars-4196
           pullPolicy: IfNotPresent
         imagePullSecrets:
           - name: ecr-regcred
