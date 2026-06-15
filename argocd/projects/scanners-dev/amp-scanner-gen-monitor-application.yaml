@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amp-scanner-gen-monitor-dev
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: 776389595347.dkr.ecr.us-west-2.amazonaws.com
+    chart: sib/helmcharts/ares/amp-scanner-gen-monitor
+    targetRevision: 0.1.0
+    helm:
+      releaseName: amp-scanner-gen-monitor-dev
+      valuesObject:
+        namespace: mars
+        fullnameOverride: amp-scanner-gen-monitor
+        image:
+          repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/amp-scanner-gen-monitor
+          tag: local-vm-setup-gcp
+          pullPolicy: IfNotPresent
+        imagePullSecrets:
+          - name: ecr-regcred
+        replicas: 1
+        externalSecrets:
+          enabled: true
+          secretStoreName: aws-ares
+          secretStoreKind: ClusterSecretStore
+          datadogApiKey: stage/scanners/amp-scanner-gen/avalon.datadog.api.key
+          datadogApiProperty: metrics.datadog.apikey
+          apiEncryptionKey: stage/scanners/amp-scanner/cache.encryption.key
+          apiEncryptionProperty: repository.apiEncryptionKey
+        config:
+          env:
+            PLATFORM: avalon
+            NEBULA: "true"
+            BACKEND_POOLS: amp-scanner-gen
+            BACKEND_FQDNS: amp-scanner-gen.mars.svc.cluster.local
+            PRODUCTION_MONITOR_TEST_TAG: "@PRODUCTION_MONITOR or @PRODUCTION_MONITOR_K8S"
+            SCANNER: amp-scanner-gen
+            SERVICE: amp-scanner-gen
+            SERVICE_NAMESPACE: mars
+            PROJECT: avalon.local
+            METRICS_ENABLED: "false"
+            AVAILABILITY_FREQUENCY: "1"
+            HEALTH_PATH: /v2/status
+            HEALTH_PORT: "8443"
+            QUADRA_DATACENTER: gcp-scanner-test
+            METRICS_EXPECT100_ENABLED: "false"
+            METRICS_CACHE_DEBUG_ENABLED: "false"
+            MONITOR_METRICS_ENABLED: "dc,quadra project,service,vedc,applicationname,ciscomailalias,resourceowner,environment,env"
+            RESOURCE_OWNER: Umbrella_ARES
+            APPLICATION_NAME: AMP Scanner Gen Monitor
+            CISCO_MAIL_ALIAS: umbrella-ares@cisco.com
+            ENV: gcp-scanner-test
+            ENVIRONMENT: gcp-scanner-test
+            METRICS_PROVIDER: PROMETHEUS
+        resources:
+          requests:
+            cpu: 500m
+            memory: 4Gi
+            ephemeral-storage: 205Mi
+          limits:
+            cpu: "1"
+            memory: 8Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mars
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
