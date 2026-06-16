@@ -18,7 +18,7 @@ spec:
         fullnameOverride: scanning-service-monitor
         image:
           repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/scanning-service-monitor
-          tag: local-vm-gcp-setup
+          tag: local-vm-gcp-setup-test-monitor
           pullPolicy: IfNotPresent
         imagePullSecrets:
           - name: ecr-regcred
