@@ -8,6 +8,7 @@ resources:
   - ecr-token-generator-image-pull.yaml
   - image-pull-secret-externalsecret.yaml
   - scanning-service-gateway-application.yaml
+  - scanning-service-gateway-monitor-application.yaml
   - amp-scanner-gen-application.yaml
   - amp-scanner-gen-monitor-application.yaml
   - bd-updater-application.yaml

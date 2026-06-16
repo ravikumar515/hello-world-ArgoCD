@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scanning-service-gateway-monitor-dev
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cisco-sbg/cloudsec-ares-scanning-service-gateway.git
+    path: helm/scanning-service-gateway-monitor
+    targetRevision: local-vm-gcp-setup-test-monitor
+    helm:
+      releaseName: scanning-service-gateway-monitor-dev
+      valuesObject:
+        namespace: mars
+        fullnameOverride: scanning-service-monitor
+        image:
+          repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/scanning-service-monitor
+          tag: local-vm-gcp-setup
+          pullPolicy: IfNotPresent
+        imagePullSecrets:
+          - name: ecr-regcred
+        replicas: 1
+        priorityClassName: low-user
+        externalSecrets:
+          enabled: true
+          secretStoreName: aws-ares
+          secretStoreKind: ClusterSecretStore
+          datadogApiKey: stage/scanners/scanning-service/datadog-api-key
+          datadogApiProperty: metrics.datadog.apikey
+        config:
+          env:
+            PLATFORM: avalon
+            NEBULA: "true"
+            BACKEND_POOLS: scanning-service
+            BACKEND_FQDNS: scanning-service.mars.svc.cluster.local
+            PRODUCTION_MONITOR_TEST_TAG: "@PRODUCTION_MONITOR or @PRODUCTION_MONITOR_K8S or @PRODUCTION_MONITOR_2_ENGINE or @PRODUCTION_MONITOR_SIG"
+            SCANNER: scanning
+            SERVICE: scanning-service
+            SERVICE_NAMESPACE: mars
+            PROJECT: avalon.local
+            METRICS_ENABLED: "false"
+            AVAILABILITY_FREQUENCY: "1"
+            HEALTH_PATH: /v2/status
+            HEALTH_PORT: "8443"
+            QUADRA_DATACENTER: gcp-scanner-test
+            QUADRA_POOLSLUG: scanning-service
+            METRICS_EXPECT100_ENABLED: "false"
+            METRICS_CACHE_DEBUG_ENABLED: "false"
+            MONITOR_METRICS_ENABLED: "dc,quadra project,service,vedc,applicationname,ciscomailalias,resourceowner,environment,env"
+            RESOURCE_OWNER: Umbrella_ARES
+            APPLICATION_NAME: Scanning Service Monitor
+            CISCO_MAIL_ALIAS: umbrella-ares@cisco.com
+            ENV: gcp-scanner-test
+            ENVIRONMENT: gcp-scanner-test
+            METRICS_PROVIDER: PROMETHEUS
+        livenessProbe:
+          command:
+            - /bin/bash
+            - /opt/monitor/scripts/monitor_health_checker.sh
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+            ephemeral-storage: 203Mi
+          limits:
+            cpu: "1"
+            memory: 4Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mars
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
