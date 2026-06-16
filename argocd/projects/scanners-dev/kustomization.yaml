@@ -7,6 +7,7 @@ resources:
   - argocd-ecr-helm-repo-externalsecret.yaml
   - ecr-token-generator-image-pull.yaml
   - image-pull-secret-externalsecret.yaml
+  - scanning-service-gateway-application.yaml
   - amp-scanner-gen-application.yaml
   - amp-scanner-gen-monitor-application.yaml
   - bd-updater-application.yaml

@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scanning-service-gateway-helm-gcp-vm
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: 776389595347.dkr.ecr.us-west-2.amazonaws.com
+    chart: sib/helmcharts/ares/scanning-service-gateway
+    targetRevision: 0.1.0
+    helm:
+      releaseName: scanning-service-gateway-helm-gcp-vm
+      valuesObject:
+        namespace: mars
+        fullnameOverride: scanning-service
+        image:
+          repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/scanning-service
+          tag: local-vm-gcp-setup
+          pullPolicy: IfNotPresent
+        imagePullSecrets:
+          - name: ecr-regcred
+        replicaCount: 1
+        localstack:
+          enabled: false
+        certManager:
+          enabled: true
+          issuerName: default-ca
+          issuerKind: ClusterIssuer
+        rootCa:
+          secretKey: ca.crt
+        externalSecrets:
+          enabled: true
+          secretStoreName: aws-ares
+          secretStoreKind: ClusterSecretStore
+          keystoreSecretKey: dev/scanners/scanning-service/keystore.pass
+          keystoreSecretProperty: server.ssl.key-store-password
+        awsCredentials:
+          enabled: false
+        env:
+          INLINE_SCANNERS: avira
+          OFFLINE_SCANNERS: ""
+          SCANNER_GROUPS: av=avira
+          FILTERS_ENABLED: "false"
+          AWS_REGION: us-west-2
+          AWS_DEFAULT_REGION: us-west-2
+          AWS_REGION_SECONDARY: ""
+          SPRING_CONFIG_IMPORT: ""
+        resources:
+          requests:
+            cpu: "2"
+            memory: 6Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mars
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
