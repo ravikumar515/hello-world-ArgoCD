@@ -18,7 +18,7 @@ spec:
         fullnameOverride: scanning-service-monitor
         image:
           repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/scanning-service-monitor
-          tag: local-vm-gcp-setup-test-monitor
+          tag: mars-4209
           pullPolicy: IfNotPresent
         imagePullSecrets:
           - name: ecr-regcred
@@ -59,7 +59,8 @@ spec:
         livenessProbe:
           command:
             - /bin/bash
-            - /opt/monitor/scripts/monitor_health_checker.sh
+            - -lc
+            - read pid < /opt/monitor/run/supervisor.pid && kill -0 "$pid"
         resources:
           requests:
             cpu: 50m
