@@ -18,7 +18,7 @@ spec:
         fullnameOverride: avira-monitor
         image:
           repository: 776389595347.dkr.ecr.us-west-2.amazonaws.com/ares/avira-monitor
-          tag: mars-4162
+          tag: mars-3970
           pullPolicy: IfNotPresent
         imagePullSecrets:
           - name: ecr-regcred
